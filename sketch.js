@@ -31,9 +31,9 @@ function draw() {
   var bands = (typeof getBandLevels === 'function') ? getBandLevels() : {bass:0,mids:0,highs:0};
 
   // Normalize/shape bands -> 0..1
-  var bass = constrain(map(bands.bass, 0.00, 0.40, 0.0, 1.0), 0, 1);
-  var mids = constrain(map(bands.mids, 0.00, 0.35, 0.0, 1.0), 0, 1);
-  var highs= constrain(map(bands.highs,0.00, 0.30, 0.0, 1.0), 0, 1);
+  var bass = constrain(map(bands.bass, 0.00, 0.20, 0.0, 1.0), 0, 1);
+  var mids = constrain(map(bands.mids, 0.00, 0.25, 0.0, 1.0), 0, 1);
+  var highs= constrain(map(bands.highs,0.00, 0.20, 0.0, 1.0), 0, 1);
 
   // Map bands to behaviors:
   // bass -> vector magnitude (push)
