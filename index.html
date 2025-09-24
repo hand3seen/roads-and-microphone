@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Headmosh — Mic‑Reactive Flowfield</title>
+  <style>
+    html,body{margin:0;height:100%;background:#000}
+    #ui{position:fixed;left:12px;top:12px;z-index:9;
+        background:rgba(0,0,0,.55);backdrop-filter:blur(6px);
+        border:1px solid rgba(255,255,255,.15);border-radius:12px;
+        color:#fff;font:14px/1.4 system-ui,Segoe UI,Roboto,Inter,Arial;padding:10px;display:flex;gap:8px;align-items:center}
+    #barWrap{height:10px;width:180px;background:#222;border:1px solid #444;border-radius:999px;overflow:hidden}
+    #bar{height:100%;width:0%;background:linear-gradient(90deg,#4dd2ff,#7CFC00)}
+    select,button{padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.25);
+      background:rgba(255,255,255,.06);color:#fff;cursor:pointer}
+    select:hover,button:hover{border-color:rgba(255,255,255,.55)}
+    #status{opacity:.8;margin-left:6px}
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <select id="mic"></select>
+    <button id="start">Start</button>
+    <button id="stop">Stop</button>
+    <div id="barWrap"><div id="bar"></div></div>
+    <span id="status">idle</span>
+  </div>
+
+  <!-- p5 core -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+
+  <!-- audio module -->
+  <script src="audio.js"></script>
+
+  <!-- your sketch files (modified to read audio level) -->
+  <script src="particley.js"></script>
+  <script src="sketch.js"></script>
+</body>
+</html>
