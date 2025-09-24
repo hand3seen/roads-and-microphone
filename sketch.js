@@ -39,9 +39,9 @@ function draw() {
   // bass -> vector magnitude (push)
   // mids -> field detail/speed (incBoost) + z scroll
   // highs -> particle accents/sparks
-  var mag = 0.35 + bass * 1.4;
-  var incBoost = 0.08 + mids * 0.35;
-  var zBoost = 0.0002 + mids * 0.0012;
+  var mag = 0.35 + bass * 1;
+  var incBoost = 0.08 + mids * 2;
+  var zBoost = 0.0002 + mids * 0.1;
   var highlight = highs; // forwarded to particles
 
   var yoff = 0;
