@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Headmosh — Mic‑Reactive Flowfield</title>
+  <title>Headmosh — Multiband Mic Visual</title>
   <style>
     html,body{margin:0;height:100%;background:#000}
     #ui{position:fixed;left:12px;top:12px;z-index:9;
@@ -12,6 +12,7 @@
         color:#fff;font:14px/1.4 system-ui,Segoe UI,Roboto,Inter,Arial;padding:10px;display:flex;gap:8px;align-items:center}
     #barWrap{height:10px;width:180px;background:#222;border:1px solid #444;border-radius:999px;overflow:hidden}
     #bar{height:100%;width:0%;background:linear-gradient(90deg,#4dd2ff,#7CFC00)}
+    .pill{border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:2px 8px;opacity:.9}
     select,button{padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.25);
       background:rgba(255,255,255,.06);color:#fff;cursor:pointer}
     select:hover,button:hover{border-color:rgba(255,255,255,.55)}
@@ -24,16 +25,14 @@
     <button id="start">Start</button>
     <button id="stop">Stop</button>
     <div id="barWrap"><div id="bar"></div></div>
+    <span class="pill" id="pill-bass">bass 0.00</span>
+    <span class="pill" id="pill-mids">mids 0.00</span>
+    <span class="pill" id="pill-highs">highs 0.00</span>
     <span id="status">idle</span>
   </div>
 
-  <!-- p5 core -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
-
-  <!-- audio module -->
   <script src="audio.js"></script>
-
-  <!-- your sketch files (modified to read audio level) -->
   <script src="particley.js"></script>
   <script src="sketch.js"></script>
 </body>

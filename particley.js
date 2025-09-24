@@ -4,11 +4,12 @@ function Particle() {
   this.acc = createVector(0, 0);
   this.maxspeed = 2.5;
   this.prevPos = this.pos.copy();
-  this.reactEnergy = 0; // set by sketch
+  this.reactEnergy = 0;
+  this.reactBands = {bass:0,mids:0,highs:0};
 
   this.update = function () {
-    // speed up slightly with audio energy
-    var speedBoost = 1.0 + this.reactEnergy * 1.2;
+    // bass gives momentum, mids nudge responsiveness
+    var speedBoost = 1.0 + this.reactBands.bass * 1.2 + this.reactBands.mids * 0.4;
     this.vel.add(this.acc);
     this.vel.limit(this.maxspeed * speedBoost);
     this.pos.add(this.vel);
@@ -30,29 +31,31 @@ function Particle() {
   }
 
   this.show = function () {
-    // Audio‑reactive stroke weights (subtle)
-    var thick = 120 + this.reactEnergy * 80; // 120..200
-    var accent = 3 + this.reactEnergy * 6;   // 3..9
+    // Layered strokes, highs add sparkle density/weight
+    var baseThick = 110 + this.reactEnergy * 70; // energy overall
+    var accent = 2 + this.reactBands.highs * 10; // highs sparkle
 
-    stroke('#111111'); strokeWeight(thick); strokeCap(SQUARE);
+    stroke('#111111'); strokeWeight(baseThick); strokeCap(SQUARE);
     line(this.pos.x + 3, this.pos.y + 30, this.prevPos.x + 5, this.prevPos.y + 5);
 
-    stroke('#ffc600'); strokeWeight(accent); strokeCap(SQUARE);
+    stroke('#ffc600'); strokeWeight(Math.max(1, accent*0.7)); strokeCap(SQUARE);
     point(this.pos.x + 7, this.pos.y - 3);
 
-    stroke('#ffc600'); strokeWeight(accent); strokeCap(SQUARE);
-    point(this.pos.x + 30, this.pos.y - 3);
+    if (random() < 0.15 * this.reactBands.highs) {
+      // tiny sparks on highs
+      stroke(255); strokeWeight(1 + this.reactBands.highs * 3);
+      point(this.pos.x + random(-6,6), this.pos.y + random(-6,6));
+    }
 
-    stroke('#222222'); strokeWeight(thick + 43); strokeCap(SQUARE);
+    stroke('#222222'); strokeWeight(baseThick + 43); strokeCap(SQUARE);
     line(this.pos.x + 3, this.pos.y + 30, this.prevPos.x + 5, this.prevPos.y + 55);
 
-    stroke('#000000'); strokeWeight(thick + 50); strokeCap(SQUARE);
+    stroke('#000000'); strokeWeight(baseThick + 50); strokeCap(SQUARE);
     line(this.pos.x + 3, this.pos.y + 40, this.prevPos.x + 5, this.prevPos.y + 75);
 
-    stroke('#333333'); strokeWeight(thick); strokeCap(SQUARE);
+    stroke('#333333'); strokeWeight(baseThick); strokeCap(SQUARE);
     line(this.pos.x + 3, this.pos.y + 30, this.prevPos.x + 5, this.prevPos.y + 85);
 
-    // Small white accent line reacts too
     stroke(255); strokeWeight(1 + this.reactEnergy * 3);
     line(this.pos.x - 80, this.pos.y, this.prevPos.x + 60, this.prevPos.y);
 

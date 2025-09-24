@@ -1,7 +1,9 @@
-// Minimal Web Audio analyser exposing window.getAudioLevel()
+// Multiband Web Audio analyser exposing getBandLevels() + getAudioLevel()
 (() => {
-  let ctx, analyser, data, stream;
+  let ctx, analyser, timeData, freqData, stream;
   let ema = 0;
+  // Band EMAs for smoothness
+  let bands = {bass:0, mids:0, highs:0};
 
   const $ = s => document.querySelector(s);
   const bar = () => document.getElementById('bar');
@@ -28,9 +30,12 @@
       const constraints = { audio: { deviceId: deviceId?{exact:deviceId}:undefined, echoCancellation:false, noiseSuppression:false, autoGainControl:false } };
       stream = await navigator.mediaDevices.getUserMedia(constraints);
       const src = ctx.createMediaStreamSource(stream);
-      analyser = ctx.createAnalyser(); analyser.fftSize = 1024; analyser.smoothingTimeConstant = 0.6;
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 2048; // higher resolution for multiband
+      analyser.smoothingTimeConstant = 0.7;
+      timeData = new Uint8Array(analyser.fftSize);
+      freqData = new Uint8Array(analyser.frequencyBinCount);
       src.connect(analyser);
-      data = new Uint8Array(analyser.fftSize);
       tick();
       $('#status').textContent = 'mic running';
     }catch(e){
@@ -44,28 +49,72 @@
     analyser = null;
   }
 
-  function rms(){
+  function computeRMS(){
     if(!analyser) return 0;
-    analyser.getByteTimeDomainData(data);
+    analyser.getByteTimeDomainData(timeData);
     let sum=0;
-    for(let i=0;i<data.length;i++){ const v=(data[i]-128)/128; sum+=v*v; }
-    const r = Math.sqrt(sum/data.length); // 0..~0.5
-    return Math.min(0.5, r);
+    for(let i=0;i<timeData.length;i++){ const v=(timeData[i]-128)/128; sum+=v*v; }
+    return Math.sqrt(sum/timeData.length);
+  }
+
+  function computeBands(){
+    if(!analyser) return {bass:0,mids:0,highs:0};
+    analyser.getByteFrequencyData(freqData);
+    const sr = ctx.sampleRate || 48000;
+    const nyq = sr / 2;
+    const binHz = nyq / freqData.length;
+
+    // Band edges (Hz)
+    const BASS_MAX = 160;
+    const MIDS_MAX = 2000;
+    const HIGHS_MAX = 8000; // cap for stability
+
+    let sumB=0, nB=0, sumM=0, nM=0, sumH=0, nH=0;
+
+    for (let i=0;i<freqData.length;i++) {
+      const hz = i * binHz;
+      const v = freqData[i] / 255; // normalize 0..1
+      if (hz <= BASS_MAX) { sumB += v; nB++; }
+      else if (hz <= MIDS_MAX) { sumM += v; nM++; }
+      else if (hz <= HIGHS_MAX) { sumH += v; nH++; }
+    }
+
+    // mean magnitude per band + gentle companding
+    const bass = nB ? Math.pow(sumB/nB, 0.85) : 0;
+    const mids = nM ? Math.pow(sumM/nM, 0.90) : 0;
+    const highs = nH ? Math.pow(sumH/nH, 0.95) : 0;
+
+    // smooth
+    const aB=0.18, aM=0.20, aH=0.22;
+    bands.bass = bands.bass*(1-aB) + bass*aB;
+    bands.mids = bands.mids*(1-aM) + mids*aM;
+    bands.highs= bands.highs*(1-aH) + highs*aH;
+
+    return {...bands};
   }
 
   function tick(){
-    const v = rms();
-    // EMA for smoothness
+    const rms = computeRMS();
     const a = 0.25;
-    ema = ema*(1-a) + v*a;
+    ema = ema*(1-a) + rms*a;
+    const bl = computeBands();
+
     if(bar()) bar().style.width = Math.min(100, Math.round(ema*300)) + '%';
+    const pb = document.getElementById('pill-bass');
+    const pm = document.getElementById('pill-mids');
+    const ph = document.getElementById('pill-highs');
+    if (pb) pb.textContent = `bass ${bl.bass.toFixed(2)}`;
+    if (pm) pm.textContent = `mids ${bl.mids.toFixed(2)}`;
+    if (ph) ph.textContent = `highs ${bl.highs.toFixed(2)}`;
+
     requestAnimationFrame(tick);
   }
 
-  // public getter for p5 sketch
-  window.getAudioLevel = () => ema; // returns 0..~0.5
+  // public API
+  window.getAudioLevel = () => ema; // overall
+  window.getBandLevels = () => bands; // {bass,mids,highs}
 
-  // wire UI
+  // UI
   window.addEventListener('load', () => {
     enumerate();
     document.getElementById('start').onclick = start;
